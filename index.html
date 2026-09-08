@@ -30,6 +30,7 @@
       padding: 15px;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 320px;
     }
     .card h2 {
       margin-top: 0;
@@ -38,10 +39,11 @@
     }
     .card img {
       width: 100%;
-      max-width: 400px;
       height: auto;
       border-radius: 4px;
       display: block;
+      background-color: #0d1117;
+      min-height: 200px;
     }
   </style>
 </head>
@@ -52,19 +54,41 @@
   <div class="grid">
     <div class="card">
       <h2>NOAA-21 (N21)</h2>
-      <img src="https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=NOAA21&reg=GLOBAL" alt="NOAA-21 Orbit Track">
+      <img id="img-n21" alt="NOAA-21 Orbit Track Loading...">
     </div>
 
     <div class="card">
       <h2>NOAA-20 (N20)</h2>
-      <img src="https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=NOAA20&reg=GLOBAL" alt="NOAA-20 Orbit Track">
+      <img id="img-n20" alt="NOAA-20 Orbit Track Loading...">
     </div>
 
     <div class="card">
       <h2>Suomi-NPP (NPP)</h2>
-      <img src="https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=SNPP&reg=GLOBAL" alt="Suomi-NPP Orbit Track">
+      <img id="img-npp" alt="Suomi-NPP Orbit Track Loading...">
     </div>
   </div>
+
+  <script>
+    async function loadOrbitTrack(satId, imgElementId) {
+      const timestamp = new Date().getTime();
+      const targetUrl = `https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=${satId}&reg=GLOBAL&_=${timestamp}`;
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+
+      try {
+        const response = await fetch(proxyUrl);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        document.getElementById(imgElementId).src = objectUrl;
+      } catch (err) {
+        console.error(`Failed to load track for ${satId}:`, err);
+      }
+    }
+
+    // Load images on page render
+    loadOrbitTrack('NOAA21', 'img-n21');
+    loadOrbitTrack('NOAA20', 'img-n20');
+    loadOrbitTrack('SNPP', 'img-npp');
+  </script>
 
 </body>
 </html>
