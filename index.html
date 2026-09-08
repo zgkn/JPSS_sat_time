@@ -30,7 +30,7 @@
       padding: 15px;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      width: 320px;
+      width: 340px;
     }
     .card h2 {
       margin-top: 0;
@@ -54,40 +54,60 @@
   <div class="grid">
     <div class="card">
       <h2>NOAA-21 (N21)</h2>
-      <img id="img-n21" alt="NOAA-21 Orbit Track Loading...">
+      <img id="img-n21" alt="NOAA-21 Orbit Track">
     </div>
 
     <div class="card">
-      <h2>NOAA-20 (N20)</h2>
-      <img id="img-n20" alt="NOAA-20 Orbit Track Loading...">
+      <h2>NOAA-20 (JPSS-1)</h2>
+      <img id="img-n20" alt="NOAA-20 Orbit Track">
     </div>
 
     <div class="card">
-      <h2>Suomi-NPP (NPP)</h2>
-      <img id="img-npp" alt="Suomi-NPP Orbit Track Loading...">
+      <h2>Suomi-NPP (SNPP)</h2>
+      <img id="img-npp" alt="Suomi-NPP Orbit Track">
     </div>
   </div>
 
   <script>
-    async function loadOrbitTrack(satId, imgElementId) {
-      const timestamp = new Date().getTime();
-      const targetUrl = `https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=${satId}&reg=GLOBAL&_=${timestamp}`;
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+    function getSsecFolderString(date) {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      
+      const startOfYear = new Date(Date.UTC(year, 0, 1));
+      const dayOfYear = String(Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000)) + 1).padStart(3, '0');
+      
+      return `${year}/${year}_${month}_${day}_${dayOfYear}`;
+    }
 
-      try {
-        const response = await fetch(proxyUrl);
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        document.getElementById(imgElementId).src = objectUrl;
-      } catch (err) {
-        console.error(`Failed to load track for ${satId}:`, err);
+    function setSatelliteImages() {
+      const today = new Date();
+      const folder = getSsecFolderString(today);
+      const baseUrl = 'https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/data';
+
+      const satellites = {
+        'img-n21': 'NOAA21',
+        'img-n20': 'JPSS-1', // NOAA-20 is stored under JPSS-1
+        'img-npp': 'SNPP'
+      };
+
+      for (const [imgId, satName] of Object.entries(satellites)) {
+        const imgElement = document.getElementById(imgId);
+        const imgUrl = `${baseUrl}/${satName}/${folder}/GLOBAL.gif`;
+        
+        imgElement.src = imgUrl;
+
+        // Fallback to yesterday's image if today's image has not been generated yet by SSEC
+        imgElement.onerror = function() {
+          const yesterday = new Date(Date.now() - 86400000);
+          const yesterdayFolder = getSsecFolderString(yesterday);
+          this.onerror = null; // prevent infinite fallback loops
+          this.src = `${baseUrl}/${satName}/${yesterdayFolder}/GLOBAL.gif`;
+        };
       }
     }
 
-    // Load images on page render
-    loadOrbitTrack('NOAA21', 'img-n21');
-    loadOrbitTrack('NOAA20', 'img-n20');
-    loadOrbitTrack('SNPP', 'img-npp');
+    setSatelliteImages();
   </script>
 
 </body>
