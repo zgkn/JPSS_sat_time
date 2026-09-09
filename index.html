@@ -87,8 +87,8 @@
 
       const satellites = {
         'img-n21': 'NOAA21',
-        'img-n20': 'JPSS-1', // NOAA-20 is stored under JPSS-1
-        'img-npp': 'SNPP'
+        'img-n20': 'JPSS-1',
+        'img-npp': 'snpp' // Fixed: SSEC directory path uses lowercase 'snpp'
       };
 
       for (const [imgId, satName] of Object.entries(satellites)) {
