@@ -63,7 +63,7 @@
     </div>
 
     <div class="card">
-      <h2>Suomi-NPP (SNPP)</h2>
+      <h2>Suomi-NPP (NPP)</h2>
       <img id="img-npp" alt="Suomi-NPP Orbit Track">
     </div>
   </div>
@@ -80,30 +80,35 @@
       return `${year}/${year}_${month}_${day}_${dayOfYear}`;
     }
 
-    function setSatelliteImages() {
-      const today = new Date();
-      const folder = getSsecFolderString(today);
+    function loadSatWithFallback(imgElement, satName, daysBack = 2) {
       const baseUrl = 'https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/data';
+      
+      // Calculate target date based on days offset
+      const targetDate = new Date(Date.now() - (daysBack * 86400000));
+      const folder = getSsecFolderString(targetDate);
+      
+      imgElement.src = `${baseUrl}/${satName}/${folder}/GLOBAL.gif`;
 
+      // Recurse backwards up to 7 days if SSEC hasn't updated the directory
+      imgElement.onerror = function() {
+        if (daysBack < 7) {
+          loadSatWithFallback(this, satName, daysBack + 1);
+        } else {
+          this.onerror = null; // Prevent infinite loops
+        }
+      };
+    }
+
+    function setSatelliteImages() {
       const satellites = {
         'img-n21': 'NOAA21',
         'img-n20': 'JPSS-1',
-        'img-npp': 'snpp' // Fixed: SSEC directory path uses lowercase 'snpp'
+        'img-npp': 'NPP' // SSEC directory path is 'NPP'
       };
 
       for (const [imgId, satName] of Object.entries(satellites)) {
         const imgElement = document.getElementById(imgId);
-        const imgUrl = `${baseUrl}/${satName}/${folder}/GLOBAL.gif`;
-        
-        imgElement.src = imgUrl;
-
-        // Fallback to yesterday's image if today's image has not been generated yet by SSEC
-        imgElement.onerror = function() {
-          const yesterday = new Date(Date.now() - 86400000);
-          const yesterdayFolder = getSsecFolderString(yesterday);
-          this.onerror = null; // prevent infinite fallback loops
-          this.src = `${baseUrl}/${satName}/${yesterdayFolder}/GLOBAL.gif`;
-        };
+        loadSatWithFallback(imgElement, satName, 2); // Start 2 days back for reliable active runs
       }
     }
 
