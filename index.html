@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Polar Orbit Tracks - Southeast Asia</title>
+  <title>Polar Orbit Tracks - Singapore Centered</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -37,7 +37,7 @@
       font-size: 1.2rem;
       color: #58a6ff;
     }
-    /* Crop container focused specifically on Southeast Asia */
+    /* Crop container centered precisely over Singapore (1.35° N, 103.81° E) */
     .crop-container {
       width: 100%;
       height: 280px;
@@ -47,11 +47,11 @@
       position: relative;
     }
     .crop-container img {
-      width: 380%; /* Increased zoom level */
+      width: 450%; /* Tighter zoom for local pass coverage */
       height: auto;
       position: absolute;
-      top: -58%;   /* Centered vertically on Indochina & Maritime SEA */
-      left: -202%; /* Shifted West to align 90°E - 130°E */
+      top: -82%;   /* Align vertically with the Equator / 1.3° N */
+      left: -238%; /* Align horizontally with 103.8° E */
       display: block;
     }
     .date-label {
@@ -63,7 +63,7 @@
 </head>
 <body>
 
-  <h1>Today's Polar Orbit Tracks (Southeast Asia)</h1>
+  <h1>Today's Polar Orbit Tracks (Singapore Region)</h1>
 
   <div class="grid">
     <div class="card">
@@ -115,7 +115,7 @@
       imgElement.src = `${baseUrl}/${satName}/${folderInfo.path}/GLOBAL.gif`;
       labelElement.textContent = `Date (UTC): ${folderInfo.displayDate}`;
 
-      // Fallback to previous day if today's upload is delayed
+      // Fallback to previous day if today's upload is delayed by SSEC
       imgElement.onerror = function() {
         if (offsetDays > -3) {
           loadTodaySatTrack(this, labelElement, satName, offsetDays - 1);
