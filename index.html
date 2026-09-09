@@ -58,7 +58,7 @@
     </div>
 
     <div class="card">
-      <h2>NOAA-20 (JPSS-1)</h2>
+      <h2>NOAA-20 (N20)</h2>
       <img id="img-n20" alt="NOAA-20 Orbit Track">
     </div>
 
@@ -69,50 +69,28 @@
   </div>
 
   <script>
-    function getSsecFolderString(date) {
-      const year = date.getUTCFullYear();
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(date.getUTCDate()).padStart(2, '0');
-      
-      const startOfYear = new Date(Date.UTC(year, 0, 1));
-      const dayOfYear = String(Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000)) + 1).padStart(3, '0');
-      
-      return `${year}/${year}_${month}_${day}_${dayOfYear}`;
-    }
+    async function loadLatestImage(satId, imgElementId) {
+      // Append a cache-busting timestamp to guarantee real-time data
+      const cacheBuster = new Date().getTime();
+      const ssecUrl = `https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=${satId}&reg=GLOBAL&ts=${cacheBuster}`;
 
-    function loadSatWithFallback(imgElement, satName, daysBack = 2) {
-      const baseUrl = 'https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/data';
-      
-      // Calculate target date based on days offset
-      const targetDate = new Date(Date.now() - (daysBack * 86400000));
-      const folder = getSsecFolderString(targetDate);
-      
-      imgElement.src = `${baseUrl}/${satName}/${folder}/GLOBAL.gif`;
-
-      // Recurse backwards up to 7 days if SSEC hasn't updated the directory
-      imgElement.onerror = function() {
-        if (daysBack < 7) {
-          loadSatWithFallback(this, satName, daysBack + 1);
-        } else {
-          this.onerror = null; // Prevent infinite loops
-        }
-      };
-    }
-
-    function setSatelliteImages() {
-      const satellites = {
-        'img-n21': 'NOAA21',
-        'img-n20': 'JPSS-1',
-        'img-npp': 'NPP' // SSEC directory path is 'NPP'
-      };
-
-      for (const [imgId, satName] of Object.entries(satellites)) {
-        const imgElement = document.getElementById(imgId);
-        loadSatWithFallback(imgElement, satName, 2); // Start 2 days back for reliable active runs
+      try {
+        const response = await fetch(ssecUrl);
+        const blob = await response.blob();
+        
+        // Convert binary image response directly to an in-memory object URL
+        const objectUrl = URL.createObjectURL(blob);
+        document.getElementById(imgElementId).src = objectUrl;
+      } catch (err) {
+        // Direct image URL fallback if fetch stream is restricted by browser policy
+        document.getElementById(imgElementId).src = ssecUrl;
       }
     }
 
-    setSatelliteImages();
+    // Load active real-time tracks
+    loadLatestImage('NOAA21', 'img-n21');
+    loadLatestImage('NOAA20', 'img-n20');
+    loadLatestImage('SNPP', 'img-npp');
   </script>
 
 </body>
