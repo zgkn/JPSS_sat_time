@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Polar Orbit Tracks</title>
+  <title>Polar Orbit Tracks - Southeast Asia</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -37,41 +37,56 @@
       font-size: 1.2rem;
       color: #58a6ff;
     }
-    .card img {
+    /* Crop container for Southeast Asia (90°E - 140°E) */
+    .crop-container {
       width: 100%;
-      height: auto;
+      height: 260px;
+      overflow: hidden;
       border-radius: 4px;
-      display: block;
       background-color: #0d1117;
-      min-height: 200px;
+      position: relative;
+    }
+    .crop-container img {
+      width: 320%;
+      height: auto;
+      position: absolute;
+      top: -55%;
+      left: -178%;
+      display: block;
     }
     .date-label {
       font-size: 0.85rem;
       color: #8b949e;
-      margin-top: 8px;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Today's Global Polar Orbit Tracks</h1>
+  <h1>Today's Polar Orbit Tracks (Southeast Asia)</h1>
 
   <div class="grid">
     <div class="card">
       <h2>NOAA-21 (N21)</h2>
-      <img id="img-n21" alt="NOAA-21 Today's Orbit Track">
+      <div class="crop-container">
+        <img id="img-n21" alt="NOAA-21 Orbit Track">
+      </div>
       <div id="date-n21" class="date-label"></div>
     </div>
 
     <div class="card">
       <h2>NOAA-20 (JPSS-1)</h2>
-      <img id="img-n20" alt="NOAA-20 Today's Orbit Track">
+      <div class="crop-container">
+        <img id="img-n20" alt="NOAA-20 Orbit Track">
+      </div>
       <div id="date-n20" class="date-label"></div>
     </div>
 
     <div class="card">
       <h2>Suomi-NPP (NPP)</h2>
-      <img id="img-npp" alt="Suomi-NPP Today's Orbit Track">
+      <div class="crop-container">
+        <img id="img-npp" alt="Suomi-NPP Orbit Track">
+      </div>
       <div id="date-npp" class="date-label"></div>
     </div>
   </div>
@@ -94,14 +109,13 @@
     function loadTodaySatTrack(imgElement, labelElement, satName, offsetDays = 0) {
       const baseUrl = 'https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/data';
       
-      // Calculate UTC date starting explicitly at TODAY (0 offset)
       const targetDate = new Date(Date.now() + (offsetDays * 86400000));
       const folderInfo = getSsecFolderString(targetDate);
       
       imgElement.src = `${baseUrl}/${satName}/${folderInfo.path}/GLOBAL.gif`;
       labelElement.textContent = `Date (UTC): ${folderInfo.displayDate}`;
 
-      // Fallback ONLY to yesterday (-1, -2) if SSEC hasn't uploaded today's pass yet
+      // Fallback to previous day if today's upload is delayed by SSEC
       imgElement.onerror = function() {
         if (offsetDays > -3) {
           loadTodaySatTrack(this, labelElement, satName, offsetDays - 1);
@@ -123,7 +137,6 @@
         const imgElement = document.getElementById(`img-${key}`);
         const labelElement = document.getElementById(`date-${key}`);
         
-        // Always starts at 0 (today's UTC date)
         loadTodaySatTrack(imgElement, labelElement, satName, 0); 
       }
     }
