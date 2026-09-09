@@ -37,21 +37,21 @@
       font-size: 1.2rem;
       color: #58a6ff;
     }
-    /* Crop container for Southeast Asia (90°E - 140°E) */
+    /* Crop container focused specifically on Southeast Asia */
     .crop-container {
       width: 100%;
-      height: 260px;
+      height: 280px;
       overflow: hidden;
       border-radius: 4px;
       background-color: #0d1117;
       position: relative;
     }
     .crop-container img {
-      width: 320%;
+      width: 380%; /* Increased zoom level */
       height: auto;
       position: absolute;
-      top: -55%;
-      left: -178%;
+      top: -58%;   /* Centered vertically on Indochina & Maritime SEA */
+      left: -202%; /* Shifted West to align 90°E - 130°E */
       display: block;
     }
     .date-label {
@@ -115,7 +115,7 @@
       imgElement.src = `${baseUrl}/${satName}/${folderInfo.path}/GLOBAL.gif`;
       labelElement.textContent = `Date (UTC): ${folderInfo.displayDate}`;
 
-      // Fallback to previous day if today's upload is delayed by SSEC
+      // Fallback to previous day if today's upload is delayed
       imgElement.onerror = function() {
         if (offsetDays > -3) {
           loadTodaySatTrack(this, labelElement, satName, offsetDays - 1);
