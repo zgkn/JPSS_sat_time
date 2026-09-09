@@ -45,52 +45,90 @@
       background-color: #0d1117;
       min-height: 200px;
     }
+    .date-label {
+      font-size: 0.85rem;
+      color: #8b949e;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Latest Global Polar Orbit Tracks</h1>
+  <h1>Today's Global Polar Orbit Tracks</h1>
 
   <div class="grid">
     <div class="card">
       <h2>NOAA-21 (N21)</h2>
-      <img id="img-n21" alt="NOAA-21 Orbit Track">
+      <img id="img-n21" alt="NOAA-21 Today's Orbit Track">
+      <div id="date-n21" class="date-label"></div>
     </div>
 
     <div class="card">
-      <h2>NOAA-20 (N20)</h2>
-      <img id="img-n20" alt="NOAA-20 Orbit Track">
+      <h2>NOAA-20 (JPSS-1)</h2>
+      <img id="img-n20" alt="NOAA-20 Today's Orbit Track">
+      <div id="date-n20" class="date-label"></div>
     </div>
 
     <div class="card">
       <h2>Suomi-NPP (NPP)</h2>
-      <img id="img-npp" alt="Suomi-NPP Orbit Track">
+      <img id="img-npp" alt="Suomi-NPP Today's Orbit Track">
+      <div id="date-npp" class="date-label"></div>
     </div>
   </div>
 
   <script>
-    async function loadLatestImage(satId, imgElementId) {
-      // Append a cache-busting timestamp to guarantee real-time data
-      const cacheBuster = new Date().getTime();
-      const ssecUrl = `https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/get_image.php?sat=${satId}&reg=GLOBAL&ts=${cacheBuster}`;
+    function getSsecFolderString(date) {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      
+      const startOfYear = new Date(Date.UTC(year, 0, 1));
+      const dayOfYear = String(Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000)) + 1).padStart(3, '0');
+      
+      return {
+        path: `${year}/${year}_${month}_${day}_${dayOfYear}`,
+        displayDate: `${year}-${month}-${day}`
+      };
+    }
 
-      try {
-        const response = await fetch(ssecUrl);
-        const blob = await response.blob();
+    function loadTodaySatTrack(imgElement, labelElement, satName, offsetDays = 0) {
+      const baseUrl = 'https://www.ssec.wisc.edu/datacenter/polar_orbit_tracks/data';
+      
+      // Calculate UTC date starting explicitly at TODAY (0 offset)
+      const targetDate = new Date(Date.now() + (offsetDays * 86400000));
+      const folderInfo = getSsecFolderString(targetDate);
+      
+      imgElement.src = `${baseUrl}/${satName}/${folderInfo.path}/GLOBAL.gif`;
+      labelElement.textContent = `Date (UTC): ${folderInfo.displayDate}`;
+
+      // Fallback ONLY to yesterday (-1, -2) if SSEC hasn't uploaded today's pass yet
+      imgElement.onerror = function() {
+        if (offsetDays > -3) {
+          loadTodaySatTrack(this, labelElement, satName, offsetDays - 1);
+        } else {
+          this.onerror = null;
+          labelElement.textContent = 'Track unavailable';
+        }
+      };
+    }
+
+    function setSatelliteImages() {
+      const satellites = {
+        'n21': 'NOAA21',
+        'n20': 'JPSS-1',
+        'npp': 'NPP'
+      };
+
+      for (const [key, satName] of Object.entries(satellites)) {
+        const imgElement = document.getElementById(`img-${key}`);
+        const labelElement = document.getElementById(`date-${key}`);
         
-        // Convert binary image response directly to an in-memory object URL
-        const objectUrl = URL.createObjectURL(blob);
-        document.getElementById(imgElementId).src = objectUrl;
-      } catch (err) {
-        // Direct image URL fallback if fetch stream is restricted by browser policy
-        document.getElementById(imgElementId).src = ssecUrl;
+        // Always starts at 0 (today's UTC date)
+        loadTodaySatTrack(imgElement, labelElement, satName, 0); 
       }
     }
 
-    // Load active real-time tracks
-    loadLatestImage('NOAA21', 'img-n21');
-    loadLatestImage('NOAA20', 'img-n20');
-    loadLatestImage('SNPP', 'img-npp');
+    setSatelliteImages();
   </script>
 
 </body>
