@@ -47,11 +47,11 @@
       position: relative;
     }
     .crop-container img {
-      width: 450%; /* Tighter zoom for local pass coverage */
+      width: 400%; /* Clear zoom level */
       height: auto;
       position: absolute;
-      top: -82%;   /* Align vertically with the Equator / 1.3° N */
-      left: -238%; /* Align horizontally with 103.8° E */
+      top: -72%;   /* Vertically aligned with Equator / 1.3° N */
+      left: -152%; /* Corrected: Less negative value shifts view WEST to 103.8° E */
       display: block;
     }
     .date-label {
